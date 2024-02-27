@@ -36,3 +36,51 @@
     transform: rotate(360deg);
   }
 }
+
+/* Updated CSS for translation-section layout */
+.translation-section {
+  display: flex;
+  justify-content: space-around;
+  align-items: start;
+  padding: 20px;
+}
+
+.input-section, .output-section {
+  width: 48%; /* Adjust the width as necessary */
+  margin: 0;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.model-select-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start; /* Aligns items to the start */
+  width: 10%; /* Adjust width as needed */
+  margin-right: 2%; /* Adds spacing between this container and the input-section */
+  padding-top: 40px; 
+}
+
+.model-select {
+  width: 100%; /* Ensures the select takes the full width of its container */
+  margin-bottom: 10px; /* Adds spacing below the select */
+}
+
+/* Modified Flexbox layout for .input-section to align children at the center */
+.input-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center aligns items */
+}
+
+/* Additional styling for aesthetics */
+textarea {
+  width: 100%;
+  margin-top: 10px;
+  height: 150px; /* Increase the height of the textarea */
+}
+
+select, button {
+  margin-top: 10px;
+}
