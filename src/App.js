@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import './App.css';
-
+import { SageMakerRuntimeClient, InvokeEndpointCommand } from '@aws-sdk/client-sagemaker-runtime';
 
 function App() {
   const [sourceLanguage, setSourceLanguage] = useState('English');
@@ -9,46 +9,69 @@ function App() {
   const [inputText, setInputText] = useState('');
   const [translatedText, setTranslatedText] = useState('');
 
-   // Simulated function for sending request to SageMaker endpoint
-   const sendRequestToSageMaker = async (url, inputText) => {
-    // Simulate sending request to the URL with inputText
-    console.log(`Sending request to URL: ${url} with text: ${inputText}`);
-    // Simulate API response
-    return `Simulated translation of "${inputText}"`;
+  const accessKey = 'YOUR_ACCESS_KEY';
+  const secretKey = 'YOUR_SECRET_KEY';
+  const region = 'us-west-2';
+ 
+  const client = new SageMakerRuntimeClient({
+    region: region,
+    credentials: {
+      accessKeyId: accessKey,
+      secretAccessKey: secretKey,
+    },
+  });
+
+
+  const sendRequestToSageMaker = async (endpointName, inputText) => {
+    const params = {
+      EndpointName: endpointName,
+      ContentType: 'application/json',
+      Accept: 'application/json',
+      Body: JSON.stringify({ input: inputText }),
+    };
+
+    try {
+      const command = new InvokeEndpointCommand(params);
+      const response = await client.send(command);
+      const responseBody = JSON.parse(new TextDecoder('utf-8').decode(response.Body));
+      if (responseBody.translations && responseBody.translations.length > 0) {
+        return responseBody.translations[0];
+      } else {
+        throw new Error('No translations found in response');
+      }
+    } catch (error) {
+      console.error('Error sending request to SageMaker:', error);
+      return `Error: ${error.message}`;
+    }    
   };
 
-  // Dummy function for handling translation
   const handleTranslation = async () => {
-    let englishAmharicBaseModelUrl = 'https://dummy-sagemaker-endpoint.com/english-amharic-basic';
-    let amharicEnglishBaseModelUrl = 'https://dummy-sagemaker-endpoint.com/amharic-english-basic';
-    let englishAmharicBertModelUrl = 'https://dummy-sagemaker-endpoint.com/english-amharic-bert';
-    let amharicEnglishBertModelUrl = 'https://dummy-sagemaker-endpoint.com/amharic-english-bert';
-    let englishAmharicCtnmtModelUrl = 'https://dummy-sagemaker-endpoint.com/english-amharic-ctnmt';
-    let amharicEnglishCtnmtModelUrl = 'https://dummy-sagemaker-endpoint.com/amharic-english-ctnmt';
+    const englishAmharicBaseModelEndpoint = 'english-amharic-base-model';
+    const amharicEnglishBaseModelEndpoint = 'amharic-english-base-model';
+    const englishAmharicBertModelEndpoint = 'english-amharic-bert-fused-model';
+    const amharicEnglishBertModelEndpoint = 'amharic-english-bert-fused-model';
+    const englishAmharicCtnmtModelEndpoint = 'english-amharic-ctnmt-model';
 
-    let url = '';
+    let endpointName = '';
     let simulatedResponse = '';
+    let actualResponse = '';
 
     if (translationModel === 'Basic Model') {
-      url = sourceLanguage === 'English' && targetLanguage === 'Amharic' ? englishAmharicBaseModelUrl : amharicEnglishBaseModelUrl;
+      endpointName = sourceLanguage === 'English' && targetLanguage === 'Amharic' ? englishAmharicBaseModelEndpoint : amharicEnglishBaseModelEndpoint;
     } else if (translationModel === 'BERT Model') {
-      url = sourceLanguage === 'English' && targetLanguage === 'Amharic' ? englishAmharicBertModelUrl : amharicEnglishBertModelUrl;
+      endpointName = sourceLanguage === 'English' && targetLanguage === 'Amharic' ? englishAmharicBertModelEndpoint : amharicEnglishBertModelEndpoint;
     } else if (translationModel === 'CTNMT Model') {
-      url = sourceLanguage === 'English' && targetLanguage === 'Amharic' ? englishAmharicCtnmtModelUrl : amharicEnglishCtnmtModelUrl;
+      endpointName = sourceLanguage === 'English' && targetLanguage === 'Amharic' ? englishAmharicCtnmtModelEndpoint : null;
     }
 
-    // Invoke the simulated request function
-    if (url) {
-      simulatedResponse = await sendRequestToSageMaker(url, inputText);
-      simulatedResponse = `Translated (${translationModel}): ${simulatedResponse}`;
+    if (endpointName) {
+      actualResponse = await sendRequestToSageMaker(endpointName, inputText);
+      simulatedResponse = `Translated (${translationModel}): ${actualResponse}`;
     } else {
       simulatedResponse = `Translation model or language pair not supported.`;
-      simulatedResponse = `Translated (${translationModel}): ${simulatedResponse}`;
     }
 
-    // Update the state with the simulated response
     setTranslatedText(simulatedResponse);
-    
   };
 
   return (
